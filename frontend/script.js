@@ -25,37 +25,37 @@ const copyBtn = document.getElementById('copyBtn');
 // Strength level configurations
 const STRENGTH_LEVELS = [
     {
-        name: 'Very Weak',
-        color: '#ff1744',
-        gradient: 'linear-gradient(90deg, #ff1744, #ff6f00)',
+        name: 'CRITICAL',
+        color: '#ff003c',
+        gradient: 'linear-gradient(90deg, #ff003c, #ff3366)',
         width: '20%',
         range: [0, 0]
     },
     {
-        name: 'Weak',
-        color: '#ff6f00',
-        gradient: 'linear-gradient(90deg, #ff6f00, #ffc400)',
+        name: 'WEAK',
+        color: '#ffae00',
+        gradient: 'linear-gradient(90deg, #ff003c, #ffae00)',
         width: '40%',
         range: [1, 1]
     },
     {
-        name: 'Fair',
-        color: '#ffc400',
-        gradient: 'linear-gradient(90deg, #ffc400, #ffeb3b)',
+        name: 'FAIR',
+        color: '#fcee0a',
+        gradient: 'linear-gradient(90deg, #ffae00, #fcee0a)',
         width: '60%',
         range: [2, 2]
     },
     {
-        name: 'Strong',
-        color: '#4caf50',
-        gradient: 'linear-gradient(90deg, #4caf50, #8bc34a)',
+        name: 'STRONG',
+        color: '#00ff00',
+        gradient: 'linear-gradient(90deg, #fcee0a, #00ff00)',
         width: '80%',
         range: [3, 3]
     },
     {
-        name: 'Very Strong',
-        color: '#00ff88',
-        gradient: 'linear-gradient(90deg, #00ff88, #00d4ff)',
+        name: 'SECURE',
+        color: '#00ffff',
+        gradient: 'linear-gradient(90deg, #00ff00, #00ffff)',
         width: '100%',
         range: [4, 4]
     }
@@ -242,9 +242,9 @@ function updateSuggestions(result) {
 
     // If no suggestions, show encouraging message
     if (tips.length === 0) {
-        const message = document.createElement('p');
-        message.className = 'placeholder-text';
-        message.textContent = '✓ Great! No suggestions needed. Your password looks strong!';
+        const message = document.createElement('div');
+        message.className = 'placeholder-content';
+        message.innerHTML = '<i class="fa-solid fa-shield-check" style="color: #00ff00; font-size: 2rem; margin-bottom: 10px;"></i><p class="placeholder-text" style="color: #00ff00; text-shadow: 0 0 10px #00ff00;">SECURITY PROTOCOLS MET. KEY IS SECURE.</p>';
         suggestionsContainer.appendChild(message);
         return;
     }
@@ -254,6 +254,10 @@ function updateSuggestions(result) {
         const suggestionElement = document.createElement('div');
         suggestionElement.className = 'suggestion-item';
         
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid fa-triangle-exclamation tip-warn-icon';
+        suggestionElement.appendChild(icon);
+
         const suggestionText = document.createElement('span');
         suggestionText.className = 'suggestion-text';
         // Capitalize first letter
@@ -275,12 +279,12 @@ function updateSuggestions(result) {
 function resetAllDisplays() {
     // Reset strength meter
     strengthBar.style.width = '0%';
-    strengthBar.style.background = 'linear-gradient(90deg, #ff1744, #ff6f00)';
+    strengthBar.style.background = 'linear-gradient(90deg, #ff003c, #ff3366)';
 
     // Reset strength label
-    strengthLabel.textContent = 'Very Weak';
-    strengthLabel.style.background = 'rgba(255, 23, 68, 0.1)';
-    strengthLabel.style.color = '#ff1744';
+    strengthLabel.textContent = 'CRITICAL';
+    strengthLabel.style.background = 'rgba(255, 0, 60, 0.1)';
+    strengthLabel.style.color = '#ff003c';
 
     // Reset score
     scoreValue.textContent = '0 / 4';
@@ -289,7 +293,7 @@ function resetAllDisplays() {
     crackTimeValue.textContent = 'Less than a second';
 
     // Reset suggestions
-    suggestionsContainer.innerHTML = '<p class="placeholder-text">Your suggestions will appear here as you type</p>';
+    suggestionsContainer.innerHTML = '<div class="placeholder-content"><i class="fa-solid fa-radar fa-spin"></i><p class="placeholder-text">Awaiting input sequence for analysis...</p></div>';
 }
 
 // ============================================
@@ -307,12 +311,12 @@ togglePasswordBtn.addEventListener('click', function() {
     if (isPasswordMode) {
         // Show password
         passwordInput.type = 'text';
-        togglePasswordBtn.querySelector('.eye-icon').textContent = '🚫';
+        togglePasswordBtn.querySelector('.eye-icon').className = 'fa-solid fa-eye-slash eye-icon';
         togglePasswordBtn.title = 'Hide password';
     } else {
         // Hide password
         passwordInput.type = 'password';
-        togglePasswordBtn.querySelector('.eye-icon').textContent = '👁️';
+        togglePasswordBtn.querySelector('.eye-icon').className = 'fa-solid fa-eye eye-icon';
         togglePasswordBtn.title = 'Show password';
     }
 });
@@ -473,3 +477,146 @@ document.addEventListener('keydown', function(event) {
 
 console.log('✓ All event listeners initialized');
 console.log('Tip: Press Shift+Enter to generate a new password');
+
+
+// ============================================
+// 14. INTERACTIVE BACKGROUND & EFFECTS
+// ============================================
+
+const canvas = document.getElementById('interactive-bg');
+const ctx = canvas.getContext('2d');
+const titleElement = document.getElementById('cyberTitle');
+const headerContent = document.getElementById('headerContent');
+
+let width, height;
+let particles = [];
+let mouse = { x: -1000, y: -1000 }; // Starts off-screen
+
+function resizeCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+    initParticles();
+}
+
+// Track Mouse Movement for Background Only
+window.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+});
+
+window.addEventListener('mouseout', () => {
+    mouse.x = -1000;
+    mouse.y = -1000;
+});
+
+// Particle Class
+class Particle {
+    constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * 2 + 1;
+        this.baseX = this.x;
+        this.baseY = this.y;
+        this.density = (Math.random() * 30) + 1;
+        this.velocity = {
+            x: (Math.random() - 0.5) * 1,
+            y: (Math.random() - 0.5) * 1
+        };
+    }
+    
+    draw() {
+        ctx.fillStyle = 'rgba(0, 229, 255, 0.8)';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+    }
+    
+    update() {
+        // Floating motion
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+        
+        // Bounce off edges
+        if(this.x < 0 || this.x > width) this.velocity.x *= -1;
+        if(this.y < 0 || this.y > height) this.velocity.y *= -1;
+
+        // Mouse interaction
+        let dx = mouse.x - this.x;
+        let dy = mouse.y - this.y;
+        let distance = Math.sqrt(dx * dx + dy * dy);
+        let forceDirectionX = dx / distance;
+        let forceDirectionY = dy / distance;
+        
+        // Interaction radius
+        const maxDistance = 150;
+        let force = (maxDistance - distance) / maxDistance;
+        
+        if (force < 0) force = 0;
+        
+        let directionX = (forceDirectionX * force * this.density);
+        let directionY = (forceDirectionY * force * this.density);
+        
+        if (distance < maxDistance) {
+            this.x -= directionX;
+            this.y -= directionY;
+            // Increase size when near mouse
+            this.size = Math.min(this.size + 0.2, 4);
+        } else {
+            if (this.x !== this.baseX) {
+                let dx = this.x - this.baseX;
+                this.x -= dx/50;
+            }
+            if (this.y !== this.baseY) {
+                let dy = this.y - this.baseY;
+                this.y -= dy/50;
+            }
+            // Return to normal size
+            if(this.size > 2) this.size -= 0.1;
+        }
+    }
+}
+
+function initParticles() {
+    particles = [];
+    let numberOfParticles = (width * height) / 9000;
+    for (let i = 0; i < numberOfParticles; i++) {
+        particles.push(new Particle());
+    }
+}
+
+function animateParticles() {
+    ctx.clearRect(0, 0, width, height);
+    
+    // Draw connecting lines
+    for(let a = 0; a < particles.length; a++) {
+        particles[a].update();
+        particles[a].draw();
+        
+        for(let b = a; b < particles.length; b++) {
+            let dx = particles[a].x - particles[b].x;
+            let dy = particles[a].y - particles[b].y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < 100) {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(0, 229, 255, ${1 - distance/100})`;
+                ctx.lineWidth = 0.5;
+                ctx.moveTo(particles[a].x, particles[a].y);
+                ctx.lineTo(particles[b].x, particles[b].y);
+                ctx.stroke();
+            }
+        }
+    }
+    requestAnimationFrame(animateParticles);
+}
+
+// Initialize
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+animateParticles();
+
+console.log('✓ Interactive Background and Effects Initialized');
+

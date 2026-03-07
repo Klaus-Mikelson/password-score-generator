@@ -3,128 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Strength Analyzer</title>
+    <title>CyberSec | Password Strength Analyzer</title>
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Link to CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Interactive Canvas Background -->
+    <canvas id="interactive-bg"></canvas>
+
     <!-- Main Container -->
     <div class="container">
         <!-- Header Section -->
         <header class="header">
-            <div class="header-content">
-                <h1 class="title">🔐 Password Strength Analyzer</h1>
-                <p class="subtitle">Check how secure your password is and learn how to improve it</p>
+            <div class="header-content" id="headerContent">
+                <div class="cyber-badge"><i class="fa-solid fa-shield-halved"></i> SYSTEM SECURE</div>
+                <h1 class="title" id="cyberTitle"><span class="title-layer">PASSWORD</span><br><span class="highlight">ANALYZER</span></h1>
+                <p class="subtitle">Initialize security scan sequence. Enter authorization code below.</p>
             </div>
         </header>
 
         <!-- Main Card -->
-        <div class="card">
-            <!-- Password Input Section -->
-            <section class="input-section">
-                <label for="passwordInput" class="label">Enter Your Password</label>
-                <div class="password-input-wrapper">
-                    <input 
-                        type="password" 
-                        id="passwordInput" 
-                        class="password-input" 
-                        placeholder="Type your password here..."
-                        autocomplete="off"
-                    >
-                    <button class="toggle-btn" id="togglePasswordBtn" title="Show/Hide Password">
-                        <span class="eye-icon">👁️</span>
-                    </button>
-                </div>
-            </section>
+        <div class="card cyber-frame">
+            <div class="frame-edges"></div>
+            <div class="scanner-line"></div>
+            
+            <div class="card-inner">
+                <!-- Password Input Section -->
+                <section class="input-section">
+                    <label for="passwordInput" class="label"><i class="fa-solid fa-terminal"></i> Enter Authorization Key</label>
+                    <div class="password-input-wrapper">
+                        <div class="input-highlight"></div>
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input 
+                            type="password" 
+                            id="passwordInput" 
+                            class="password-input" 
+                            placeholder="[ TYPE PASSWORD ]"
+                            autocomplete="off"
+                        >
+                        <button class="toggle-btn" id="togglePasswordBtn" title="Toggle Visibility">
+                            <i class="fa-solid fa-eye eye-icon"></i>
+                        </button>
+                    </div>
+                </section>
 
-            <!-- Strength Meter Section -->
-            <section class="strength-section">
-                <div class="strength-header">
-                    <label class="label">Password Strength</label>
-                    <span class="strength-label" id="strengthLabel">Very Weak</span>
-                </div>
-                <div class="strength-meter">
-                    <div class="strength-bar" id="strengthBar"></div>
-                </div>
-                <div class="strength-info">
-                    <div class="info-item">
-                        <span class="info-label">Score:</span>
-                        <span class="info-value" id="scoreValue">0 / 4</span>
+                <!-- Strength Meter Section -->
+                <section class="strength-section">
+                    <div class="strength-header">
+                        <label class="label"><i class="fa-solid fa-chart-simple"></i> Threat Level</label>
+                        <span class="strength-label cyber-tag" id="strengthLabel">CRITICAL</span>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Crack Time:</span>
-                        <span class="info-value" id="crackTimeValue">Less than a second</span>
+                    <div class="strength-meter">
+                        <div class="strength-bar" id="strengthBar"></div>
+                        <!-- decorative dots -->
+                        <div class="meter-grid">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
                     </div>
-                </div>
-            </section>
+                    <div class="strength-info">
+                        <div class="info-item cyber-box">
+                            <i class="fa-solid fa-star bg-icon"></i>
+                            <span class="info-label">Security Score</span>
+                            <span class="info-value" id="scoreValue">0 / 4</span>
+                        </div>
+                        <div class="info-item cyber-box">
+                            <i class="fa-solid fa-stopwatch bg-icon"></i>
+                            <span class="info-label">Est. Crack Time</span>
+                            <span class="info-value" id="crackTimeValue">Less than a second</span>
+                        </div>
+                    </div>
+                </section>
 
-            <!-- Suggestions Section -->
-            <section class="suggestions-section">
-                <h2 class="section-title">💡 Improvement Suggestions</h2>
-                <div class="suggestions-container" id="suggestionsContainer">
-                    <p class="placeholder-text">Your suggestions will appear here as you type</p>
-                </div>
-            </section>
+                <!-- Suggestions Section -->
+                <section class="suggestions-section">
+                    <h2 class="section-title"><i class="fa-solid fa-microchip"></i> AI Suggestions</h2>
+                    <div class="suggestions-container cyber-panel" id="suggestionsContainer">
+                        <div class="placeholder-content">
+                            <i class="fa-solid fa-radar fa-spin"></i>
+                            <p class="placeholder-text">Awaiting input sequence for analysis...</p>
+                        </div>
+                    </div>
+                </section>
 
-            <!-- Password Generator Section -->
-            <section class="generator-section">
-                <h2 class="section-title">🎲 Generate Strong Password</h2>
-                <div class="generator-container">
-                    <input 
-                        type="text" 
-                        id="generatedPassword" 
-                        class="generated-password" 
-                        readonly
-                        placeholder="Your generated password will appear here"
-                    >
-                    <div class="generator-buttons">
-                        <button class="btn btn-generate" id="generateBtn">Generate</button>
-                        <button class="btn btn-copy" id="copyBtn" title="Copy to clipboard">Copy</button>
+                <!-- Password Generator Section -->
+                <section class="generator-section">
+                    <h2 class="section-title"><i class="fa-solid fa-fingerprint"></i> Auto-Generate Key</h2>
+                    <div class="generator-container">
+                        <div class="gen-input-wrapper">
+                            <input 
+                                type="text" 
+                                id="generatedPassword" 
+                                class="generated-password glow-text" 
+                                readonly
+                                placeholder="INITIALIZING..."
+                            >
+                        </div>
+                        <div class="generator-buttons">
+                            <button class="btn btn-cyber" id="generateBtn">
+                                <i class="fa-solid fa-arrows-rotate"></i> <span>GENERATE</span>
+                            </button>
+                            <button class="btn btn-cyber-alt" id="copyBtn" title="Copy to clipboard">
+                                <i class="fa-solid fa-copy"></i> <span>COPY</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- Password Tips Section -->
-            <section class="tips-section">
-                <h2 class="section-title">📚 How to Create Strong Passwords</h2>
-                <div class="tips-list">
-                    <div class="tip-item">
-                        <span class="tip-icon">✓</span>
-                        <span class="tip-text">Use at least 12 characters for better security</span>
+                <!-- Password Tips Section -->
+                <section class="tips-section">
+                    <h2 class="section-title"><i class="fa-solid fa-book-journal-whills"></i> Protocol Guidelines</h2>
+                    <div class="tips-list">
+                        <div class="tip-item">
+                            <i class="fa-solid fa-check tip-icon"></i>
+                            <span class="tip-text">Minimum 12 characters length required</span>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fa-solid fa-check tip-icon"></i>
+                            <span class="tip-text">Mix upper/lower casing, numerals & symbols</span>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fa-solid fa-check tip-icon"></i>
+                            <span class="tip-text">Avoid dictionary terms and common phrases</span>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fa-solid fa-check tip-icon"></i>
+                            <span class="tip-text">No sequential repeating patterns permitted</span>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fa-solid fa-check tip-icon"></i>
+                            <span class="tip-text">Employ unique keys for distinct databases</span>
+                        </div>
                     </div>
-                    <div class="tip-item">
-                        <span class="tip-icon">✓</span>
-                        <span class="tip-text">Combine uppercase, lowercase, numbers, and symbols</span>
-                    </div>
-                    <div class="tip-item">
-                        <span class="tip-icon">✓</span>
-                        <span class="tip-text">Avoid common words, names, or dictionary terms</span>
-                    </div>
-                    <div class="tip-item">
-                        <span class="tip-icon">✓</span>
-                        <span class="tip-text">Don't use sequential numbers (123) or repeating patterns</span>
-                    </div>
-                    <div class="tip-item">
-                        <span class="tip-icon">✓</span>
-                        <span class="tip-text">Consider using memorable passphrases with symbols</span>
-                    </div>
-                    <div class="tip-item">
-                        <span class="tip-icon">✓</span>
-                        <span class="tip-text">Use unique passwords for different accounts</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Footer -->
-            <footer class="footer">
-                <p>Built with ❤️ using zxcvbn password strength library</p>
-                <p class="disclaimer">This tool runs locally in your browser. Your password is never sent to any server.</p>
-            </footer>
+                </section>
+            </div>
         </div>
+
+        <!-- Cyber Footer -->
+        <footer class="cyber-footer">
+            <div class="footer-content">
+                <div class="footer-badges">
+                    <span class="badge outline-badge">GROUP ID: A14</span>
+                    <span class="badge solid-badge">TEAM PROJECT</span>
+                </div>
+                <!-- Stacked layout for better mobile/flow -->
+                <div class="footer-project-info">
+                    <span class="footer-text">A Password Score Generator with Real-Time Improvement Suggestions <span class="project-id">(Project ID: T214)</span></span>
+                    <span class="footer-text">Developed by: <span class="highlight-text">Aditya Wankhede &amp; Sourish Bhandakkar</span></span>
+                </div>
+                
+                <div class="footer-credits">
+                    <p>Built with <i class="fa-solid fa-heart heart-icon"></i> using zxcvbn password strength library</p>
+                    <p>This tool runs locally in your browser. Your password is never sent to any server.</p>
+                </div>
+            </div>
+        </footer>
+
     </div>
 
     <!-- zxcvbn Library from CDN -->
@@ -132,5 +172,6 @@
     
     <!-- Link to JavaScript -->
     <script src="script.js"></script>
+    
 </body>
 </html>
