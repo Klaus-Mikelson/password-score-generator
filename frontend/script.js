@@ -69,6 +69,75 @@ const CHAR_SETS = {
     symbols: '!@#$%^&*-_+=?'
 };
 
+// localStorage keys
+const STORAGE_KEYS = {
+    passwordVisibility: 'psg_passwordVisibility'
+};
+
+// ============================================
+// 2A. UTILITY FUNCTIONS
+// ============================================
+
+/**
+ * Sanitizes text to prevent XSS vulnerabilities
+ * Escapes HTML special characters
+ * @param {string} text - Text to sanitize
+ * @returns {string} Sanitized text
+ */
+function sanitizeText(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
+ * Shows a toast notification to the user
+ * @param {string} message - Message to display
+ * @param {number} duration - Duration in milliseconds (default 2000)
+ */
+function showToast(message, duration = 2000) {
+    let toast = document.getElementById('toast-notification');
+    
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast-notification';
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 255, 102, 0.9);
+            color: #05070e;
+            padding: 15px 20px;
+            border-radius: 5px;
+            border: 2px solid #00ff66;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
+        `;
+        document.body.appendChild(toast);
+    }
+    
+    toast.textContent = message;
+    toast.style.display = 'block';
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 300);
+    }, duration);
+}
+
+/**
+ * Checks if zxcvbn library is loaded
+ * @returns {boolean} True if zxcvbn is available
+ */
+function isZxcvbnLoaded() {
+    return typeof zxcvbn !== 'undefined';
+}
+
 // ============================================
 // 3. PASSWORD INPUT EVENT LISTENER
 // ============================================
@@ -86,15 +155,27 @@ passwordInput.addEventListener('input', function() {
         return;
     }
 
-    // Analyze password strength using zxcvbn library
-    // zxcvbn returns an object with score, feedback, and more
-    const result = zxcvbn(password);
+    // Check if zxcvbn library is available
+    if (!isZxcvbnLoaded()) {
+        console.error('zxcvbn library not loaded');
+        suggestionsContainer.innerHTML = '<div class="placeholder-content"><i class="fa-solid fa-exclamation-triangle" style="color: #ff003c;"></i><p class="placeholder-text" style="color: #ff003c;">Error: Security library failed to load. Please refresh the page.</p></div>';
+        return;
+    }
 
-    // Update all UI elements based on zxcvbn result
-    updateStrengthMeter(result);
-    updateScore(result);
-    updateCrackTime(result);
-    updateSuggestions(result);
+    try {
+        // Analyze password strength using zxcvbn library
+        // zxcvbn returns an object with score, feedback, and more
+        const result = zxcvbn(password);
+
+        // Update all UI elements based on zxcvbn result
+        updateStrengthMeter(result);
+        updateScore(result);
+        updateCrackTime(result);
+        updateSuggestions(result);
+    } catch (error) {
+        console.error('Error analyzing password:', error);
+        suggestionsContainer.innerHTML = '<div class="placeholder-content"><i class="fa-solid fa-exclamation-triangle" style="color: #ff003c;"></i><p class="placeholder-text" style="color: #ff003c;">Error analyzing password. Please try again.</p></div>';
+    }
 });
 
 // ============================================
@@ -260,8 +341,9 @@ function updateSuggestions(result) {
 
         const suggestionText = document.createElement('span');
         suggestionText.className = 'suggestion-text';
-        // Capitalize first letter
-        suggestionText.textContent = tip.charAt(0).toUpperCase() + tip.slice(1);
+        // Capitalize first letter and sanitize text to prevent XSS
+        const sanitizedTip = sanitizeText(tip);
+        suggestionText.textContent = sanitizedTip.charAt(0).toUpperCase() + sanitizedTip.slice(1);
         
         suggestionElement.appendChild(suggestionText);
         suggestionsContainer.appendChild(suggestionElement);
@@ -303,10 +385,12 @@ function resetAllDisplays() {
 /**
  * Toggles between showing and hiding the password
  * Updates the input type and button icon
+ * Saves preference to localStorage
  */
 togglePasswordBtn.addEventListener('click', function() {
     // Toggle input type between password and text
     const isPasswordMode = passwordInput.type === 'password';
+    const isVisible = !isPasswordMode;
     
     if (isPasswordMode) {
         // Show password
@@ -318,6 +402,13 @@ togglePasswordBtn.addEventListener('click', function() {
         passwordInput.type = 'password';
         togglePasswordBtn.querySelector('.eye-icon').className = 'fa-solid fa-eye eye-icon';
         togglePasswordBtn.title = 'Show password';
+    }
+    
+    // Save preference to localStorage
+    try {
+        localStorage.setItem(STORAGE_KEYS.passwordVisibility, isVisible);
+    } catch (error) {
+        console.warn('Could not save preference to localStorage:', error);
     }
 });
 
@@ -381,44 +472,74 @@ generateBtn.addEventListener('click', function() {
 
 /**
  * Copies the generated password to clipboard
- * Shows visual feedback to user
+ * Shows visual feedback to user with toast notification
  */
 copyBtn.addEventListener('click', function() {
     const password = generatedPassword.value;
 
     // Check if there's a password to copy
     if (!password) {
-        alert('Please generate a password first!');
+        showToast('⚠ Please generate a password first!', 2000);
         return;
     }
 
     // Use modern Clipboard API
-    navigator.clipboard.writeText(password).then(() => {
-        // Show success feedback
-        const originalText = this.textContent;
-        this.textContent = '✓ Copied!';
-        
-        // Show feedback for 2 seconds
-        setTimeout(() => {
-            this.textContent = originalText;
-        }, 2000);
-    }).catch(err => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(password).then(() => {
+            // Show success toast and button feedback
+            showToast('✓ Password copied to clipboard!', 2000);
+            
+            // Button visual feedback
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fa-solid fa-check"></i> <span>COPIED</span>';
+            this.style.transform = 'scale(0.98)';
+            
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.style.transform = 'scale(1)';
+            }, 1500);
+        }).catch(err => {
+            console.error('Clipboard API failed:', err);
+            fallbackCopyToClipboard(password);
+        });
+    } else {
         // Fallback for older browsers
+        fallbackCopyToClipboard(password);
+    }
+});
+
+/**
+ * Fallback method for copying to clipboard in older browsers
+ * @param {string} password - Password to copy
+ */
+function fallbackCopyToClipboard(password) {
+    try {
         const textArea = document.createElement('textarea');
         textArea.value = password;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
         document.body.appendChild(textArea);
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-
+        
         // Show success feedback
-        const originalText = this.textContent;
-        this.textContent = '✓ Copied!';
+        showToast('✓ Password copied to clipboard!', 2000);
+        
+        // Button visual feedback
+        const originalText = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>COPIED</span>';
+        copyBtn.style.transform = 'scale(0.98)';
+        
         setTimeout(() => {
-            this.textContent = originalText;
-        }, 2000);
-    });
-});
+            copyBtn.innerHTML = originalText;
+            copyBtn.style.transform = 'scale(1)';
+        }, 1500);
+    } catch (error) {
+        console.error('Copy failed:', error);
+        showToast('✗ Failed to copy password', 2000);
+    }
+}
 
 // ============================================
 // 12. INITIALIZATION
@@ -429,17 +550,68 @@ copyBtn.addEventListener('click', function() {
  * Reset displays and set up ready state
  */
 document.addEventListener('DOMContentLoaded', function() {
+    // Add CSS for toast animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scaleX(1); }
+            50% { transform: scaleX(1.05); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Check if zxcvbn library is loaded
+    if (!isZxcvbnLoaded()) {
+        console.error('ERROR: zxcvbn library failed to load!');
+        showToast('⚠ Security library failed to load. Some features may not work.', 5000);
+    } else {
+        console.log('✓ zxcvbn library loaded successfully');
+    }
+    
     // Reset all displays on page load
     resetAllDisplays();
 
     // Generate an initial password
     generatedPassword.value = generateStrongPassword();
+    
+    // Restore password visibility preference from localStorage
+    try {
+        const savedVisibility = localStorage.getItem(STORAGE_KEYS.passwordVisibility);
+        if (savedVisibility === 'true') {
+            // User previously enabled visibility
+            togglePasswordBtn.click();
+        }
+    } catch (error) {
+        console.warn('Could not restore visibility preference:', error);
+    }
 
     // Set focus to password input
     passwordInput.focus();
 
     // Log initialization message
-    console.log('Password Strength Analyzer loaded successfully!');
+    console.log('✓ Password Strength Analyzer loaded successfully!');
+    console.log('💡 Tip: Press Shift+Enter in password field to generate a new password');
+    console.log('💡 Tip: Press Enter in generated password field to copy');
 });
 
 // ============================================
